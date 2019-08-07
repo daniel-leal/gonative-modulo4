@@ -1,8 +1,9 @@
 import { combineReducers } from 'redux';
 
-const reducers = combineReducers({
-  // Remova essa linha depois de adicionar seus ducks
-  example: () => [],
-});
+import { reducer as podcasts } from './podcasts';
+import { reducer as player } from './player';
 
-export default reducers;
+export default combineReducers({
+  podcasts,
+  player,
+});
