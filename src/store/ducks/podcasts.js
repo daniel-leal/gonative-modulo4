@@ -10,15 +10,6 @@ const { Types, Creators } = createActions({
   loadFailure: null,
 });
 
-// Types: { LOAD_REQUEST, LOAD_SUCCESS, LOAD_FAILURE }
-// Creators:
-
-/**
- * loadRequest: () => ({ type: 'LOAD_REQUEST' })
- * loadSuccess: (data) => ({ type: 'LOAD_SUCCESS', data })
- * loadFailure: () => ({ type: 'LOAD_FAILURE' })
- */
-
 export const PodcastsTypes = Types;
 export default Creators;
 

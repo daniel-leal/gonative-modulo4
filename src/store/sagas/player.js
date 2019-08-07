@@ -1,4 +1,7 @@
-import { call, put, select } from 'redux-saga/effects';
+import {
+  call, put, select, take,
+} from 'redux-saga/effects';
+import { eventChannel } from 'redux-saga';
 import TrackPlayer from 'react-native-track-player';
 
 import PlayerActions from '~/store/ducks/player';
@@ -29,6 +32,26 @@ export function* init() {
   });
 }
 
+function* trackChanged() {
+  const channel = eventChannel((emitter) => {
+    const onTrackChange = TrackPlayer.addEventListener('playback-track-changed', emitter);
+
+    return () => onTrackChange.remove();
+  });
+
+  try {
+    while (true) {
+      const { nextTrack } = yield take(channel);
+
+      yield put(PlayerActions.setCurrent(nextTrack));
+
+      console.tron.log(nextTrack);
+    }
+  } finally {
+    channel.close();
+  }
+}
+
 export function* setPodcast({ podcast, episodeId }) {
   const currentPodcast = yield select(state => state.player.podcast);
 
@@ -46,6 +69,7 @@ export function* setPodcast({ podcast, episodeId }) {
   }
 
   yield put(PlayerActions.play());
+  yield call(trackChanged);
 }
 
 export function* play() {
@@ -54,4 +78,29 @@ export function* play() {
 
 export function* pause() {
   yield call(TrackPlayer.pause);
+}
+
+export function* prev() {
+  const player = yield select(state => state.player);
+  const currentIndex = player.podcast.tracks.findIndex(episode => episode.id === player.current);
+
+  if (player.podcast.tracks[currentIndex - 1]) {
+    yield call(TrackPlayer.skipToPrevious);
+    yield put(PlayerActions.play());
+  }
+}
+
+export function* next() {
+  const player = yield select(state => state.player);
+  const currentIndex = player.podcast.tracks.findIndex(episode => episode.id === player.current);
+
+  if (player.podcast.tracks[currentIndex + 1]) {
+    yield call(TrackPlayer.skipToNext);
+    yield put(PlayerActions.play());
+  }
+}
+
+export function* reset() {
+  yield call(TrackPlayer.stop);
+  yield call(TrackPlayer.reset);
 }
